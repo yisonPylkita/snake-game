@@ -12,5 +12,9 @@ project(snake_game)
 find_package(SFML 2 REQUIRED network audio graphics window system)
 include_directories(${SFML_INCLUDE_DIR})
 
-add_executable(${PROJECT_NAME} snake_game.cpp)
+set(SG_SOURCES
+    src/snake_game.cpp
+)
+
+add_executable(${PROJECT_NAME} ${SG_SOURCES})
 target_link_libraries(${PROJECT_NAME} ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})
