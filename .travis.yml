@@ -1,0 +1,12 @@
+language: cpp
+compiler:
+  - gcc
+
+sudo: required
+
+before_script:
+  - sudo ./buildme.sh --install-dependencies
+
+script: 
+  - ./buildme.sh
+
