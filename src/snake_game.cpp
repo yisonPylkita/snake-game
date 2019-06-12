@@ -86,19 +86,50 @@ private:
     std::vector<SnakeSegment> _segments;
 };
 
-constexpr uint32_t board_width = 64;
-constexpr uint32_t board_height = 64;
-std::array<std::array<uint8_t, board_width>, board_height> board{};
+struct Candy : public sf::Drawable
+{
+    void init() {
+        _rect.setSize(sf::Vector2f(50.f, 50.f));
+        _rect.setPosition(_position);
+        _rect.setFillColor(sf::Color::Red);
+    }
+private :
+    void draw(sf::RenderTarget &target, sf::RenderStates states) const override
+    {
+        target.draw(_rect);
+    }
+
+private:
+    sf::Vector2f _position = sf::Vector2f(25.f, 50.f);
+    sf::RectangleShape _rect;
+};
+
+Candy candy;
+auto snake_direction = std::string("up");
 Snake snake{};
 
-void update_game(uint32_t) {}
-void render_game_frame(sf::RenderWindow &window) {
-    // Draw a board
-    sf::RectangleShape board_shape(sf::Vector2f(1280, 720));
-    board_shape.setFillColor(sf::Color::White);
-    window.draw(board_shape);
+void handle_key(sf::Event::KeyEvent key) {
+    if (key.code == sf::Keyboard::Up && snake_direction != "up") {
+        snake_direction = "up";
+    } else if (key.code == sf::Keyboard::Down && snake_direction != "down") {
+        snake_direction = "down";
+    } else if (key.code == sf::Keyboard::Left && snake_direction != "left") {
+        snake_direction = "left";
+    } else if (key.code == sf::Keyboard::Right && snake_direction != "right") {
+        snake_direction = "right";
+    }
+}
 
+void update_game() {
+    // snake.take_step()
+}
+
+void render_game_frame(sf::RenderWindow &window) {
+    window.clear(sf::Color::White);
+
+    window.draw(candy);
     window.draw(snake);
+
     window.display();
 }
 
@@ -106,6 +137,7 @@ int main_impl()
 {
     resource_manager.init();
     snake.init();
+    candy.init();
 
     sf::Clock clock;
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
@@ -119,7 +151,8 @@ int main_impl()
         timeSinceLastUpdate += dt;
         while (timeSinceLastUpdate > TimePerFrame) {
             timeSinceLastUpdate -= TimePerFrame;
-            update_game(TimePerFrame.asMilliseconds());
+            // update_game(TimePerFrame.asMilliseconds());
+            update_game();
         }
 
         // render game world
@@ -130,6 +163,9 @@ int main_impl()
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
+            else if (event.type == sf::Event::KeyPressed) {
+                handle_key(event.key);
+            }
         }
     }
 
