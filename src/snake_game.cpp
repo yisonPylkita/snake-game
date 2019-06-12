@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include <deque>
+#include <random>
 #include <iostream>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
@@ -84,7 +85,6 @@ public:
         using sf::Keyboard;
         auto new_snake_head_segment = _segments.front();
 
-        // TODO: implement movenet here
         if (_direction == Keyboard::Up) {
             new_snake_head_segment.pos_y -= SnakeSegment::size_y; 
         } else if (_direction == Keyboard::Down) {
@@ -97,6 +97,19 @@ public:
 
         _segments.pop_back();
         _segments.push_front(new_snake_head_segment);
+    }
+
+    sf::Vector2u last_segment_position() const {
+        const auto &segment = _segments.back();
+        return {segment.pos_x, segment.pos_y};
+    }
+
+    /// Will add given segment at the end of sanke segments
+    void make_longer(sf::Vector2u new_segment_position) {
+        auto segment = SnakeSegment{};
+        segment.pos_x = new_segment_position.x;
+        segment.pos_y = new_segment_position.y;
+        _segments.push_back(segment);
     }
 
 protected:
@@ -124,6 +137,16 @@ struct Candy : public sf::Drawable
         _rect.setPosition(_position);
         _rect.setFillColor(sf::Color::Red);
     }
+
+    sf::Vector2u position() const {
+        return {static_cast<uint32_t>(_position.x), static_cast<uint32_t>(_position.y)};
+    }
+
+    void set_position(sf::Vector2u new_position) {
+        _position = sf::Vector2f(static_cast<float>(new_position.x), static_cast<float>(new_position.y));
+        _rect.setPosition(_position);
+    }
+
 private :
     void draw(sf::RenderTarget &target, sf::RenderStates states) const override
     {
@@ -142,8 +165,20 @@ void handle_key(sf::Event::KeyEvent key) {
     snake.set_direction(key.code);
 }
 
+sf::Vector2u random_position() {
+    static std::random_device random_dev{};
+    static std::default_random_engine engine(random_dev());
+    std::uniform_int_distribution<uint32_t> uniform_dist(1, 14);
+    return {uniform_dist(engine) * 50, uniform_dist(engine) * 50};
+}
+
 void update_game() {
     snake.take_step();
+    if (snake.last_segment_position() == candy.position()) {
+        snake.make_longer(candy.position());
+        // spawn candy at random position
+        candy.set_position(random_position());
+    }
 }
 
 void render_game_frame(sf::RenderWindow &window) {
