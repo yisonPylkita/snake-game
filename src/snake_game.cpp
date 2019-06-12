@@ -64,8 +64,8 @@ public:
     void init() {
         // Snake should start with a one segment
         auto segment = SnakeSegment();
-        segment.pos_x = 0;
-        segment.pos_y = 0;
+        segment.pos_x = 600;
+        segment.pos_y = 300;
         _segments.push_back(segment);
     }
 
