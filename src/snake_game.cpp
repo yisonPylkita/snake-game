@@ -9,7 +9,8 @@
 namespace {
 namespace resources {
 namespace textures {
-constexpr uint32_t snake_segment = 0x01u;
+constexpr uint32_t snake_segment_body = 0x01u;
+// constexpr uint32_t snake_segment_head = 0x02u;
 }
 }
 
@@ -17,7 +18,7 @@ struct ResourceManager
 {
     void init()
     {
-        load_texture("./assets/snake_segment.bmp", resources::textures::snake_segment);
+        load_texture("./assets/snake_segment_body.bmp", resources::textures::snake_segment_body);
     }
 
     const sf::Texture & texture(uint32_t resource_id) const
@@ -52,13 +53,22 @@ private :
     {
         sf::Sprite segment_sprite;
         segment_sprite.setPosition(pos_x, pos_y);
-        segment_sprite.setTexture(resource_manager.texture(resources::textures::snake_segment));
+        segment_sprite.setTexture(resource_manager.texture(resources::textures::snake_segment_body));
         target.draw(segment_sprite, states);
     }
 };
 
 struct Snake : public sf::Drawable
 {
+public:
+    void init() {
+        // Snake should start with a one segment
+        auto segment = SnakeSegment();
+        segment.pos_x = 0;
+        segment.pos_y = 0;
+        _segments.push_back(segment);
+    }
+
 protected:
     const std::vector<SnakeSegment> & get_segments() const
     {
@@ -79,20 +89,30 @@ private:
 constexpr uint32_t board_width = 64;
 constexpr uint32_t board_height = 64;
 std::array<std::array<uint8_t, board_width>, board_height> board{};
+Snake snake{};
 
 void update_game(uint32_t) {}
-void render_game_frame() {}
+void render_game_frame(sf::RenderWindow &window) {
+    // Draw a board
+    sf::RectangleShape board_shape(sf::Vector2f(1280, 720));
+    board_shape.setFillColor(sf::Color::White);
+    window.draw(board_shape);
+
+    window.draw(snake);
+    window.display();
+}
 
 int main_impl()
 {
     resource_manager.init();
+    snake.init();
 
     sf::Clock clock;
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
     const sf::Time TimePerFrame = sf::seconds(1.f/60.f);
-    sf::Window window(sf::VideoMode(800, 600), "snake");
+    sf::RenderWindow window(sf::VideoMode(1280, 720), "Snake - the game");
     window.setFramerateLimit(60);
-    window.setVerticalSyncEnabled(true);
+    // window.setVerticalSyncEnabled(true);
     constexpr uint32_t time_step_in_ms = 16;
     while (window.isOpen()) {
         sf::Time dt = clock.restart();
@@ -103,7 +123,7 @@ int main_impl()
         }
 
         // render game world
-        render_game_frame();
+        render_game_frame(window);
 
         // handle user actions
         sf::Event event{};
