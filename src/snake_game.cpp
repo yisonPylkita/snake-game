@@ -2,6 +2,7 @@
 #include <chrono>
 #include <memory>
 #include <vector>
+#include <deque>
 #include <iostream>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
@@ -45,6 +46,9 @@ ResourceManager resource_manager;
 
 struct SnakeSegment : public sf::Drawable
 {
+    static constexpr uint32_t size_x = 50;
+    static constexpr uint32_t size_y = 50;
+
     uint32_t pos_x;
     uint32_t pos_y;
 
@@ -69,8 +73,34 @@ public:
         _segments.push_back(segment);
     }
 
+    void set_direction(sf::Keyboard::Key direction) {
+        if (direction == sf::Keyboard::Up || direction == sf::Keyboard::Down ||
+            direction == sf::Keyboard::Left || direction == sf::Keyboard::Right) {
+                _direction = direction;
+        }
+    }
+
+    void take_step() {
+        using sf::Keyboard;
+        auto new_snake_head_segment = _segments.front();
+
+        // TODO: implement movenet here
+        if (_direction == Keyboard::Up) {
+            new_snake_head_segment.pos_y -= SnakeSegment::size_y; 
+        } else if (_direction == Keyboard::Down) {
+            new_snake_head_segment.pos_y += SnakeSegment::size_y; 
+        } else if (_direction == Keyboard::Left) {
+            new_snake_head_segment.pos_x -= SnakeSegment::size_x; 
+        } else if (_direction == Keyboard::Right) {
+            new_snake_head_segment.pos_x += SnakeSegment::size_x; 
+        }
+
+        _segments.pop_back();
+        _segments.push_front(new_snake_head_segment);
+    }
+
 protected:
-    const std::vector<SnakeSegment> & get_segments() const
+    const std::deque<SnakeSegment> & get_segments() const
     {
         return _segments;
     }
@@ -83,7 +113,8 @@ private :
     }
 
 private:
-    std::vector<SnakeSegment> _segments;
+    sf::Keyboard::Key _direction = sf::Keyboard::Up;
+    std::deque<SnakeSegment> _segments;
 };
 
 struct Candy : public sf::Drawable
@@ -100,28 +131,19 @@ private :
     }
 
 private:
-    sf::Vector2f _position = sf::Vector2f(25.f, 50.f);
+    sf::Vector2f _position = sf::Vector2f(50.f, 50.f);
     sf::RectangleShape _rect;
 };
 
 Candy candy;
-auto snake_direction = std::string("up");
 Snake snake{};
 
 void handle_key(sf::Event::KeyEvent key) {
-    if (key.code == sf::Keyboard::Up && snake_direction != "up") {
-        snake_direction = "up";
-    } else if (key.code == sf::Keyboard::Down && snake_direction != "down") {
-        snake_direction = "down";
-    } else if (key.code == sf::Keyboard::Left && snake_direction != "left") {
-        snake_direction = "left";
-    } else if (key.code == sf::Keyboard::Right && snake_direction != "right") {
-        snake_direction = "right";
-    }
+    snake.set_direction(key.code);
 }
 
 void update_game() {
-    // snake.take_step()
+    snake.take_step();
 }
 
 void render_game_frame(sf::RenderWindow &window) {
@@ -143,17 +165,17 @@ int main_impl()
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
     const sf::Time TimePerFrame = sf::seconds(1.f/60.f);
     sf::RenderWindow window(sf::VideoMode(1280, 720), "Snake - the game");
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(10);
     // window.setVerticalSyncEnabled(true);
     constexpr uint32_t time_step_in_ms = 16;
     while (window.isOpen()) {
-        sf::Time dt = clock.restart();
-        timeSinceLastUpdate += dt;
-        while (timeSinceLastUpdate > TimePerFrame) {
-            timeSinceLastUpdate -= TimePerFrame;
+        // sf::Time dt = clock.restart();
+        // timeSinceLastUpdate += dt;
+        // while (timeSinceLastUpdate > TimePerFrame) {
+        //     timeSinceLastUpdate -= TimePerFrame;
             // update_game(TimePerFrame.asMilliseconds());
             update_game();
-        }
+        // }
 
         // render game world
         render_game_frame(window);
