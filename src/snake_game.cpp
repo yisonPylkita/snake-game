@@ -75,10 +75,15 @@ public:
     }
 
     void set_direction(sf::Keyboard::Key direction) {
-        if (direction == sf::Keyboard::Up || direction == sf::Keyboard::Down ||
-            direction == sf::Keyboard::Left || direction == sf::Keyboard::Right) {
-                _direction = direction;
+        // Don't do 180 turns
+        using sf::Keyboard;
+        if (_direction == Keyboard::Left && direction == Keyboard::Right ||
+            _direction == Keyboard::Right && direction == Keyboard::Left ||
+            _direction == Keyboard::Up && direction == Keyboard::Down ||
+            _direction == Keyboard::Down && direction == Keyboard::Up) {
+                return;
         }
+        _direction = direction;
     }
 
     void take_step() {
@@ -162,7 +167,11 @@ Candy candy;
 Snake snake{};
 
 void handle_key(sf::Event::KeyEvent key) {
-    snake.set_direction(key.code);
+    const auto direction = key.code;
+    if (direction == sf::Keyboard::Up || direction == sf::Keyboard::Down ||
+        direction == sf::Keyboard::Left || direction == sf::Keyboard::Right) {
+        snake.set_direction(key.code);
+    }
 }
 
 sf::Vector2u random_position() {
