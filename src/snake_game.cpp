@@ -200,7 +200,7 @@ int main_impl()
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
     const sf::Time TimePerFrame = sf::seconds(1.f/60.f);
     sf::RenderWindow window(sf::VideoMode(1280, 720), "Snake - the game");
-    window.setFramerateLimit(10);
+    window.setFramerateLimit(7);
     // window.setVerticalSyncEnabled(true);
     constexpr uint32_t time_step_in_ms = 16;
     while (window.isOpen()) {
